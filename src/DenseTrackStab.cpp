@@ -9,12 +9,11 @@ using namespace cv;
 int main(int argc, char** argv)
 {
 	// IO operation
-	
+
 	const char* keys =
 		{
 			"{ f  | video_file     | test.avi | filename of video }"
 			"{ o  | idt_file   | test.bin | filename of idt features }"
-			"{ r  | tra_file   | tra.bin  | filename of track files  }"
 			"{ L  | track_length   | 15 | the length of trajectory }"
 			"{ S  | start_frame     | 0 | start frame of tracking }"
 			"{ E  | end_frame | 1000000 | end frame of tracking }"
@@ -29,7 +28,7 @@ int main(int argc, char** argv)
 	CommandLineParser cmd(argc, argv, keys);
 	string video = cmd.get<string>("video_file");
 	string out_file = cmd.get<string>("idt_file");
-	string tra_file = cmd.get<string>("tra_file");
+//	string tra_file = cmd.get<string>("tra_file");
 	track_length = cmd.get<int>("track_length");
 	start_frame = cmd.get<int>("start_frame");
 	end_frame = cmd.get<int>("end_frame");
@@ -41,7 +40,7 @@ int main(int argc, char** argv)
 	init_gap = cmd.get<int>("init_gap");
 
 	FILE* outfile = fopen(out_file.c_str(), "wb");
-	FILE* trafile = fopen(tra_file.c_str(), "wb");
+//	FILE* trafile = fopen(tra_file.c_str(), "wb");
 
 	VideoCapture capture;
 	capture.open(video);
@@ -50,7 +49,7 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-	float frame_num = 0;
+	int frame_num = 0;
 	TrackInfo trackInfo;
 	DescInfo hogInfo, hofInfo, mbhInfo;
 
@@ -71,7 +70,7 @@ int main(int argc, char** argv)
 
 	//if(flag)
 		 // seqInfo.length = end_frame - start_frame + 1;
-    
+
 	printf( "video size, length: %d, width: %d, height: %d\n", seqInfo.length, seqInfo.width, seqInfo.height);
 
 	if(show_track == 1)
@@ -229,7 +228,7 @@ int main(int argc, char** argv)
 				Point2f point;
 				point.x = prev_point.x + flow_pyr[iScale].ptr<float>(y)[2*x];
 				point.y = prev_point.y + flow_pyr[iScale].ptr<float>(y)[2*x+1];
- 
+
 				if(point.x <= 0 || point.x >= width || point.y <= 0 || point.y >= height) {
 					iTrack = tracks.erase(iTrack);
 					continue;
@@ -253,17 +252,17 @@ int main(int argc, char** argv)
 
 				// if the trajectory achieves the maximal length
 				if(iTrack->index >= trackInfo.length) {
-        
+
 					std::vector<Point2f> trajectory(trackInfo.length+1), trajectory1(trackInfo.length+1);
 					for(int i = 0; i <= trackInfo.length; ++i){
 						trajectory[i] = iTrack->point[i]*fscales[iScale];
 						trajectory1[i] = iTrack->point[i]*fscales[iScale];
 					}
-				
+
 					std::vector<Point2f> displacement(trackInfo.length);
 					for (int i = 0; i < trackInfo.length; ++i)
 						displacement[i] = iTrack->disp[i]*fscales[iScale];
-	
+
 					float mean_x(0), mean_y(0), var_x(0), var_y(0), length(0);
 					if(IsValid(trajectory, mean_x, mean_y, var_x, var_y, length) && IsCameraMotion(displacement)) {
 						if(show_track == 1 && iScale == 0)
@@ -286,17 +285,17 @@ int main(int argc, char** argv)
 						fwrite(&temp,sizeof(temp),1,outfile);
 						temp =  std::min<float>(max<float>((frame_num - trackInfo.length/2.0 - start_frame)/float(seqInfo.length), 0), 0.999);
 						fwrite(&temp,sizeof(temp),1,outfile);
-					
+
 						// output trajectory point coordinates
  				                for (int i=0; i< trackInfo.length; ++ i){
 							temp = trajectory1[i].x;
 							fwrite(&temp, sizeof(temp), 1, outfile);
-							fwrite(&temp, sizeof(temp), 1, trafile);
+							//fwrite(&temp, sizeof(temp), 1, trafile);
 							temp = trajectory1[i].y;
 							fwrite(&temp, sizeof(temp), 1, outfile);
-							fwrite(&temp, sizeof(temp), 1, trafile);
+							//fwrite(&temp, sizeof(temp), 1, trafile);
 						}
-              
+
 						// output the trajectory features
 						for (int i = 0; i < trackInfo.length; ++i){
 							temp = displacement[i].x;
@@ -360,7 +359,7 @@ int main(int argc, char** argv)
 		destroyWindow("DenseTrackStab");
 
 	fclose(outfile);
-	fclose(trafile);
+//	fclose(trafile);
 //	fclose(flowx);
 //	fclose(flowy);
 
