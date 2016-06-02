@@ -1,0 +1,1 @@
+./my_extract list.txt /home/zyy/workspace/wangml/my_idt/idt_features
